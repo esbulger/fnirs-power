@@ -1,103 +1,150 @@
 # Installation
 
-This guide describes how to install and configure `fnirspower` based on the current repository structure and codebase.
+This guide describes how to install and configure `fnirspower`.
 
-The repository provides:
-- the fnirspower MATLAB package enabling measurement prediction
-- the fnirspower Python package enabling statistical testing
-- bundled third-party MATLAB packages
-- examples and documentation
-- the expected workspace-style directory structure
+The GitHub repository contains:
 
----
+- the `fnirspower` MATLAB package for measurement prediction
+- the `fnirspower_py` Python package for power analysis
+- MATLAB and Python examples
+- Slurm job-submission scripts
+- documentation.
 
-In general, installation consists of:
-1. downloading or cloning the repository
-2. installing MATLAB and necessary toolboxes
-3. creating the Python environment
-4. verifying both the MATLAB and Python sides with a small test
+The required third-party MATLAB dependencies and workspace assets are distributed separately as multipart archive files attached to the corresponding GitHub Release.
 
 ---
 
-## 1. Repository structure
+Installation consists of:
 
-The current repository is organized as:
+1. Cloning or downloading the source-code repository and assets 
+2. Installing MATLAB and the required toolboxes
+3. Creating the Python environment
+4. Verifying the MATLAB and Python installations
+
+---
+
+## 1. Download the repository and release assets
+
+### A. Download the source code
+
+Clone the repository using Git:
+
+```bash
+git clone https://github.com/esbulger/fnirs-power.git
+cd <repository>
+```
+
+Alternatively, download the source-code archive from GitHub and extract it to a local directory.
+
+### B. Download the required release assets
+
+The third-party MATLAB dependencies and workspace files are not included when the repository is cloned.
+
+Open the GitHub **Releases** page for the version you are installing 
+and download every zip file corresponding to a repo folder.
+
+Using WinRAR, 7-Zip, or another compatible archive manager, extract them into the root of the cloned repository.
+
+After extraction, the repository should contain:
 
 ```text
 fnirspower/
-├─ docs/                #   Installation, Getting Started, and Other Documentation
+├─ docs/
 │
 ├─ matlab/
-│  ├─ +fnirspower/      #   Core MATLAB package code
-│  ├─ examples/         #   MATLAB example scripts and workflow drivers
-│  └─ thirdparty/       #   Bundled third-party MATLAB dependencies
+│  ├─ +fnirspower/
+│  ├─ examples/
+│  └─ thirdparty/
 │
 ├─ python/
-│  ├─ fnirspower_py/    #   Python utilities and helper modules
-│  ├─ examples/         #   Python example scripts
-│  ├─ data/             #   Data to load (i.e., MATLAB output)
-│  ├─ results/          #   Power analysis results and plots
-│  └─ jobs/             #   Slurm/job submission scripts
+│  ├─ fnirspower_py/
+│  ├─ examples/
+│  ├─ data/
+│  ├─ results/
+│  └─ jobs/
 │
-└─ workspace/           #   Models, layouts, montages, raw data, and derivative outputs
-│  ├─ derivatives/
-│  ├─ figures/
-│  ├─ layouts/
-│  ├─ manuscripts/
-│  ├─ models/
-│  ├─ montages/
-│  ├─ rawdata/
-│  └─ simulations/
+└─ workspace/
+   ├─ derivatives/
+   ├─ figures/
+   ├─ layouts/
+   ├─ models/
+   ├─ rawdata/
+   └─ montages/
 ```
 
-The package is easiest to use when this structure is kept intact.
+Some workspace directories may be empty; they are present as a placeholder to encourage compatible structuring of files.
 
 ---
 
 ## 2. MATLAB requirements
 
 ### MATLAB version
-`fnirspower` was developed in **MATLAB R2020b**. It may still function properly with newer MATLAB versions.
-You can find MATLAB here: https://www.mathworks.com/products/matlab.html
-### MATLAB toolboxes required
-The code currently requires the following MATLAB toolboxes:
+
+`fnirspower` was developed in **MATLAB R2020b**. It may also function with newer MATLAB versions.
+
+MATLAB is available from:
+
+<https://www.mathworks.com/products/matlab.html>
+
+### Required MATLAB toolboxes
+
+The current code requires:
 
 - Statistics and Machine Learning Toolbox
-- Signal Processing Toolbox 
+- Signal Processing Toolbox
 - Optimization Toolbox
 - Parallel Computing Toolbox
 
-### Bundled third-party MATLAB dependencies
-The current package structure expects bundled third-party folders under:
+### Third-party MATLAB dependencies
+
+The required third-party MATLAB packages are distributed with the GitHub Release and should be extracted into:
 
 ```text
 matlab/thirdparty/
 ```
 
 These include:
-- `iso2mesh`: https://iso2mesh.sourceforge.net/cgi-bin/index.cgi
-- `EasyH5`: https://github.com/NeuroJSON/easyh5
-- `jsnirfy`: https://www.mathworks.com/matlabcentral/fileexchange/180495-fnirs-snirf-format-reader-writer-for-matlab-octave
-- `NIRSToolbox`: https://github.com/huppertt/nirs-toolbox
-- `FieldTrip`: https://www.fieldtriptoolbox.org/
-- `NIRFASTer`: https://github.com/nirfaster/NIRFASTer
 
-These should remain in the expected repository locations.
+- `iso2mesh`
+- `EasyH5`
+- `jsnirfy`
+- `NIRSToolbox`
+- `FieldTrip`
+- `NIRFASTer`
+
+The supplied versions should remain in their expected locations because `fnirspower.setup_paths` uses this directory structure when configuring MATLAB.
 
 ### MATLAB path setup
-After opening MATLAB, add `fnirspower/matlab` to path and run:
+
+Open MATLAB and define the location of the cloned repository:
 
 ```matlab
+repo_root = 'C:\path\to\fnirspower';
+```
+
+Add the repository's `matlab` directory to the MATLAB path, then run the package setup function:
+
+```matlab
+addpath(fullfile(repo_root, 'matlab'));
 P = fnirspower.setup_paths();
 ```
 
 This should:
-- add the parent folder of `+fnirspower`
-- add bundled third-party dependencies
-- add all other paths according to the repository structure
+
+- add the parent directory of `+fnirspower`;
+- add the supplied third-party MATLAB dependencies; and
+- define paths to the workspace, model, layout, montage, and output directories.
+
+To verify the setup, run:
+
+```matlab
+which fnirspower.pipeline.run_measurement_prediction
+which fnirspower.measpred.compute_subject_ROI
+```
+
+MATLAB should return the corresponding files inside the cloned repository.
 
 ---
-
 
 ## 3. Python requirements
 
@@ -116,142 +163,188 @@ The Python utilities were developed for **Python 3.9** and currently depend on:
 - `mne`
 - `h5py`
 
-The recommended setup is to install these with `pip` using the provided requirements file:
+On a computing cluster, create a virtual environment from the repository root:
 
 ```bash
 python -m venv fnirspower_py_env
-source ./fnirspower_py_env/bin/activate
-(fnirspower_py_env) [ ~]$ pip install -r python/requirements.txt
 ```
 
-for other modules, you can use: 
+On Linux, macOS, or a computing cluster:
 
-```
-(fnirspower_py_env) [ ~]$ pip install <module(s) you want to install>
+```bash
+source fnirspower_py_env/bin/activate
 ```
 
-The actual location of the environment may vary. We generally recommend using our repo structure hosted on a PC, 
-however, running scripts on a computing cluster typically requires cloning the python folder onto the computing cluster,
-and setting up the environment there. Individual implementations may vary. 
-All provided code for power analyses is designed to run on a computing cluster.
+On Windows PowerShell:
+
+```powershell
+.\fnirspower_py_env\Scripts\Activate.ps1
+```
+
+Install the required packages:
+
+```bash
+python -m pip install --upgrade pip
+python -m pip install -r python/requirements.txt
+```
+
+Verify the Python setup:
+
+```bash
+cd python
+python -c "import fnirspower_py; import mne; print('Python setup succeeded')"
+```
+
+The location of the virtual environment may vary. Running the power-analysis scripts on a computing cluster typically requires cloning the repository, or copying its `python` directory, to a cluster-visible location and creating the Python environment there.
+
+All supplied power-analysis scripts are designed to support computing-cluster execution.
 
 ---
 
 ## 4. Required project assets
 
-The repository provides the code and expected structure, but several workflows also require project assets (i.e. data, models, etc.).
+The GitHub Release provides the model, layout, montage, and example workflow assets required by the supplied examples. These files should appear under `workspace/` after the release archive is extracted.
 
 ### A. Head model
-The current codebase is designed to work with the provided head model in the repository/workspace structure. 
-This head model was developed using iso2mesh and 3DSlicer. Advanced users may use their own head model, 
-but must ensure downstream compatibility.
 
-### B. Forward model files
-Some workflows assume the presence of a forward-model MAT file, such as the `*_nirsmodel.mat` 
-files produced by the forward-model pipeline.
+The current codebase is designed to work with the head model included in the release assets.
 
-These are used by workflows including:
-- group GLM
-- measurement prediction
-- variance estimation
+This head model was developed using iso2mesh and 3D Slicer. Advanced users may substitute their own head model but must ensure compatibility with the downstream workflows.
 
-Forward model files are included for the example head model and some montages, however, 
-custom head models and montages may require the `run_forward_model` pipeline.
+### B. Forward-model files
 
-### C. Probe geometry / `probeInfo`
+Some workflows require a forward-model MAT file, such as the `*_nirsmodel.mat` files used by the measurement-prediction pipeline.
+
+These files are used by workflows including:
+
+- group GLM;
+- measurement prediction; and
+- variance estimation.
+
+Forward-model files for the example head model and selected montages are included in the release assets. Custom head models or montages may require running the `run_forward_model` pipeline and exporting the result in the format expected by the downstream functions.
+
+### C. Probe geometry and `probeInfo`
+
 The package is designed around **NIRx-compatible probe geometry**.
 
-Forward-model and related workflows require a valid `probeInfo` structure. 
-In practice, users should provide a compatible `probeInfo` MAT file with the expected source, detector, and channel definitions.
+Forward-model and related workflows require a valid `probeInfo` structure containing the expected source, detector, and channel definitions.
 
-### D. Layout / montage files
+### D. Layout and montage files
+
 Several plotting steps require:
-- a layout MAT file
-- a montage name
-- or both
 
-The package is currently set up to work with layout files in the project structure. 
-Custom layout files are generated using FieldTrip. See `matlab/+fnirspower/+helpers/prepare_layout_NIRx.m` 
+- a layout MAT file;
+- a montage name; or
+- both.
+
+The package is configured to use layout and montage files under the workspace structure.
+
+Custom layout files can be generated using FieldTrip. See:
+
+```text
+matlab/+fnirspower/+helpers/prepare_layout_NIRx.m
+```
 
 ### E. Raw subject data
 
-The current code supports explicit SNIRF path lists and is designed around NIRx-compatible data handling. 
-This is not required for conducting measurement prediction and power analysis. 
-It is required for customizing this pipeline to your own data / experimental setup.
+Users adapting the preprocessing, GLM, absorption-estimation, or variance-estimation workflows 
+can provide their own compatible data in the `workspace/rawdata` folder.
+
+Raw subject data are not currently included in the public release. They are not required to run the 
+supplied measurement-prediction and power-analysis example. Subject data may be made available upon 
+request or a future release.
+
+The current code supports explicit SNIRF path lists and is designed around NIRx-compatible data handling.
 
 ---
 
-## 5. Cluster / Slurm setup
+## 5. Cluster and Slurm setup
 
-The current Python utilities are designed to support cluster execution through Slurm batch scripts.
+The Python utilities support cluster execution through Slurm batch scripts.
 
-Users should also have:
-- access to the cluster
-- a working Python environment on the cluster
-- valid cluster-visible paths for inputs, outputs, and logs
-- permission to submit batch jobs
+Users should have:
 
-On the cluster, the directory should be a clone or copy of the python folder:
+- access to a Slurm-based computing cluster;
+- a working Python environment on the cluster;
+- valid cluster-visible paths for inputs, outputs, and logs; and
+- permission to submit batch jobs.
+
+On the cluster, the relevant project structure should be available as:
 
 ```text
 fnirspower/
-├─ python/
-│  ├─ fnirspower_py/    #   Python functions and utilities
-│  ├─ examples/         #   Example scripts for running power analysis
-│  ├─ data/             #   Data structures and data to load (e.g., MATLAB output)
-│  ├─ results/          #   Power analysis results
-│  │ └─ plots/          #   Power plots
-│  └─ jobs/             #   Slurm/job submission scripts
+└─ python/
+   ├─ fnirspower_py/    # Python functions and utilities
+   ├─ examples/         # Power-analysis example scripts
+   ├─ data/             # Input data, including MATLAB output
+   ├─ results/          # Power-analysis results
+   │  └─ plots/         # Generated power plots
+   └─ jobs/             # Slurm job-submission scripts
 ```
 
-If access to a computing cluster is not available, the code can be modified to run locally. 
-This is not recommended due to long computation times. 
-If necessary, please contact the repo maintainer for assistance. 
+If a computing cluster is not available, the scripts can be adapted to run locally. This is not recommended for large simulations because of their computational cost.
 
-We provide example SLURM submission scripts to submit job arrays.
+Example Slurm scripts are provided under:
+
+```text
+python/jobs/
+```
 
 ---
 
 ## 6. Next step
 
-Once installation is complete, proceed to our [getting started guide](docs/getting_started.md).
+Once installation is complete, continue to the [getting started guide](getting_started.md).
 
-This guide walks through one full example from MATLAB setup through Python-based power analysis.
+That guide walks through one complete example from MATLAB setup through Python-based power analysis.
 
+---
 
-___
+## Troubleshooting
 
-<br>
+### MATLAB cannot find `fnirspower`
 
-
-
-### Possible issues
-
-See below for some issues that may occur during installation.
-
-#### MATLAB cannot find `fnirspower`
-Use:
+Confirm that the repository's `matlab` directory was added before calling the setup function:
 
 ```matlab
+repo_root = 'C:\path\to\fnirspower';
+addpath(fullfile(repo_root, 'matlab'));
 P = fnirspower.setup_paths();
 ```
 
-and confirm that the parent folder of `+fnirspower` is on the MATLAB path.
+The path entry must be the parent directory of `+fnirspower`, not the `+fnirspower` directory itself.
 
-#### FieldTrip causes path conflicts
-FieldTrip should generally be added only at the top level rather than recursively adding all subfolders. If there is a pre-existing installation, it should either be removed from the path, or the relevant path files in this repo should be modified.
+### FieldTrip causes path conflicts
 
+FieldTrip should generally be added only at the top level rather than recursively adding all subfolders.
 
-#### Simulation jobs fail with multiprocessing / pickle errors
-If you encounter multiprocessing issues, start with:
-- a small test configuration
-- a small subject/block grid
-- one CPU per task
+If another FieldTrip installation is already on the MATLAB path, remove it before running `fnirspower.setup_paths`, or modify the relevant path setup code to use the intended installation.
 
-Then scale up after the test succeeds.
+### Python cannot import `fnirspower_py`
 
-#### Saving MATLAB files is slow
-This can happen when large arrays are saved with `-v7.3`. 
-In those cases, consider saving only the required outputs rather than entire output structures.
+Run the example scripts from the repository's `python` directory:
 
----
+```bash
+cd /path/to/fnirspower/python
+python examples/sim_cluster_based_power_parallelized.py
+```
+
+Confirm that the following directories are present:
+
+```text
+python/
+├─ fnirspower_py/
+└─ examples/
+```
+
+You can also test the import directly:
+
+```bash
+python -c "import fnirspower_py; print('fnirspower_py import succeeded')"
+```
+
+### Saving MATLAB files is slow
+
+Saving large arrays with `-v7.3` can be slow.
+
+Where practical, save only the output variables required by later steps rather than the complete intermediate structures.
